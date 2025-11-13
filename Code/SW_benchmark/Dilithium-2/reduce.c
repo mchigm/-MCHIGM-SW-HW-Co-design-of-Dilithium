@@ -1,3 +1,17 @@
+/*************************************************
+ * File: reduce.c
+ * 
+ * Description: Modular reduction functions for CRYSTALS-Dilithium.
+ *              Provides Montgomery reduction, standard reduction,
+ *              and conditional addition operations in Zq.
+ * 
+ * Purpose: Efficient modular arithmetic operations for polynomial
+ *          coefficient reduction modulo Q = 8380417.
+ * 
+ * Note: Montgomery reduction assumes input in Montgomery form
+ *       and returns output also in Montgomery form.
+ *************************************************/
+
 #include <stdint.h>
 #include "params.h"
 #include "reduce.h"

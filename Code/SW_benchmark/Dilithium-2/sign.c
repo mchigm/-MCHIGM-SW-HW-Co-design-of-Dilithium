@@ -1,3 +1,21 @@
+/*************************************************
+ * File: sign.c
+ * 
+ * Description: Digital signature generation and verification for
+ *              CRYSTALS-Dilithium post-quantum signature scheme.
+ * 
+ * Purpose: Implements the core signing and verification algorithms:
+ *          - Key generation (crypto_sign_keypair)
+ *          - Signature generation (crypto_sign_signature)
+ *          - Signature verification (crypto_sign_open)
+ * 
+ * Security: Based on hardness of Module-LWE and Module-SIS problems
+ *           over polynomial rings.
+ * 
+ * Note: Uses rejection sampling to ensure security against
+ *       side-channel attacks and maintain uniform distribution.
+ *************************************************/
+
 #include <stdint.h>
 #include "params.h"
 #include "sign.h"
