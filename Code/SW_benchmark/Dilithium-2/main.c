@@ -1,3 +1,16 @@
+/*************************************************
+ * File: main.c
+ * 
+ * Description: Benchmark application for CRYSTALS-Dilithium-2 
+ *              post-quantum signature scheme on Xilinx Zynq platform.
+ *              Tests key generation, signing, and verification operations.
+ * 
+ * Purpose: Performance evaluation of Dilithium-2 implementation
+ *          using the ARM processor on Zynq-7000 SoC.
+ * 
+ * Note: Requires Xilinx platform libraries and timer support
+ *************************************************/
+
 #include <stdio.h>
 #include "platform.h"
 #include "xil_printf.h"
@@ -25,10 +38,21 @@
   #include <unistd.h>
 #endif
 
-#define MLEN 256
-#define NRUNS 1000
-#define NTESTS 10000
+#define MLEN 256       // Message length for testing
+#define NRUNS 1000     // Number of benchmark runs
+#define NTESTS 10000   // Number of test iterations (unused)
 
+/*************************************************
+ * Name:        cmp_llu
+ *
+ * Description: Comparison function for sorting unsigned long values
+ *              Used by qsort for median calculation
+ *
+ * Arguments:   - const void *a: pointer to first element
+ *              - const void *b: pointer to second element
+ *
+ * Returns:     -1 if a < b, 1 if a > b, 0 if equal
+ *************************************************/
 static int cmp_llu(const void *a, const void*b)
 {
   if (*(unsigned long *)a < *(unsigned long *)b) return -1;
@@ -37,6 +61,17 @@ static int cmp_llu(const void *a, const void*b)
 }
 
 
+/*************************************************
+ * Name:        median
+ *
+ * Description: Calculate the median value from an array of measurements
+ *
+ * Arguments:   - unsigned long *l: array of values
+ *              - size_t llen: length of array
+ *
+ * Returns:     median value (middle element for odd length, 
+ *              average of two middle elements for even length)
+ *************************************************/
 static unsigned long median(unsigned long *l, size_t llen)
 {
   qsort(l,llen,sizeof(unsigned long),cmp_llu);
@@ -46,6 +81,16 @@ static unsigned long median(unsigned long *l, size_t llen)
 }
 
 
+/*************************************************
+ * Name:        average
+ *
+ * Description: Calculate the average (mean) value from an array of measurements
+ *
+ * Arguments:   - unsigned long *t: array of timing measurements
+ *              - size_t tlen: length of array
+ *
+ * Returns:     average value in clock cycles
+ *************************************************/
 static unsigned long average(unsigned long *t, size_t tlen)
 {
   unsigned long long acc=0;
@@ -56,6 +101,15 @@ static unsigned long average(unsigned long *t, size_t tlen)
 }
 
 
+/*************************************************
+ * Name:        print_results
+ *
+ * Description: Print benchmark results showing median and average cycles
+ *
+ * Arguments:   - const char *s: label for the operation being benchmarked
+ *              - unsigned long *t: array of timing measurements
+ *              - size_t tlen: length of array
+ *************************************************/
 static void print_results(const char *s, unsigned long *t, size_t tlen)
 {
   printf("%s", s);
@@ -66,6 +120,16 @@ static void print_results(const char *s, unsigned long *t, size_t tlen)
 }
 
 
+/*************************************************
+ * Name:        main
+ *
+ * Description: Main benchmark program for Dilithium-2.
+ *              Performs NRUNS iterations of key generation, signing,
+ *              and verification operations, measuring cycle counts.
+ *              Validates correctness and prints performance statistics.
+ *
+ * Returns:     0 on success, 1 on failure
+ *************************************************/
 int main()
 {
     init_platform();
