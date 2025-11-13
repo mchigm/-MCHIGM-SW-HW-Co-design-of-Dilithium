@@ -1,8 +1,38 @@
+/*************************************************
+ * Module: mul_and_reduce_pipe
+ * 
+ * Description: Pipelined modular multiplication and reduction unit.
+ *              Performs (opt1 * opt2) mod Q using Barrett reduction.
+ * 
+ * Purpose: Efficient modular multiplication for polynomial coefficients
+ *          in Dilithium NTT computations.
+ * 
+ * Algorithm: Barrett reduction technique for fast modular arithmetic
+ *            without division. Reduces a 46-bit product to 23-bit result.
+ * 
+ * Pipeline: 8-stage pipeline for high throughput
+ *   Stage 0-1: Multiplication
+ *   Stage 2-5: Barrett reduction computation
+ *   Stage 6-7: Final adjustment
+ * 
+ * Parameters:
+ *   PARAM_Q - Dilithium prime modulus (8380417)
+ * 
+ * Ports:
+ *   clk    - System clock
+ *   opt1   - First operand (23-bit coefficient)
+ *   opt2   - Second operand (23-bit coefficient)
+ *   result - Modular product (opt1 * opt2) mod Q (23-bit)
+ * 
+ * Latency: 8 clock cycles
+ * Note: Output must be buffered before use
+ *************************************************/
+
 `timescale 1ns / 1ps
-//latency = 8
-module mul_and_reduce_pipe//the output need to be buffered before use
+
+module mul_and_reduce_pipe
 #(
-    parameter PARAM_Q = 23'b11111111110000000000001
+    parameter PARAM_Q = 23'b11111111110000000000001  // Q = 8380417
 )
 (
     input wire clk,
@@ -12,11 +42,13 @@ module mul_and_reduce_pipe//the output need to be buffered before use
     output reg[22:0] result
     );
 
-wire[45:0] mul_res_0;
-reg[45:0] mul_res_0_buf_0;
+// ========== Stage 0: Multiplication ==========
+wire[45:0] mul_res_0;              // 46-bit product of two 23-bit numbers
+reg[45:0] mul_res_0_buf_0;         // Buffered multiplication result
 reg[22:0] mul_res_2;
 reg[22:0] mul_res_3;
 
+// ========== Stage 1: Begin Reduction ==========
 wire[22:0] result0_1;
 reg[22:0]  result0_2;
 reg[22:0]  result0_3;
@@ -28,18 +60,22 @@ wire[22:0] result1_1;
 reg[22:0] result1_1_buf;
 
 wire signed [23:0] sub_result_2;
-//reduce
-assign result0_1 = mul_res_0_buf_0[45:33]+mul_res_0_buf_0[45:23];//stage1, calculate d
 
-wire[13:0] c_tmp; //stage2
-wire[10:0] e_tmp;
-wire[9:0] a_tmp;
+// Stage 1: Calculate quotient approximation (d = high_bits)
+assign result0_1 = mul_res_0_buf_0[45:33]+mul_res_0_buf_0[45:23];
+
+// ========== Stage 2: Refine Reduction ==========
+wire[13:0] c_tmp;     // Intermediate sum
+wire[10:0] e_tmp;     // Reduced intermediate value
+wire[9:0] a_tmp;      // Adjustment value
 reg[9:0] a_tmp_buf;
-wire[22:0] a_tmp_2;
-wire[3:0] b_tmp;
+wire[22:0] a_tmp_2;   // Scaled adjustment
+wire[3:0] b_tmp;      // Correction term
 reg[3:0] b_tmp_buf;
-wire[22:0] f_temp;
+wire[22:0] f_temp;    // Final adjustment
 reg[22:0] f_temp_buf;
+
+// Compute intermediate values for Barrett reduction
 assign c_tmp = mul_res_0_buf_0[45:33] + mul_res_0_buf_0[32:23];
 assign e_tmp = c_tmp[13:10] + c_tmp[9:0];
 assign a_tmp = e_tmp[10]+e_tmp[9:0];
