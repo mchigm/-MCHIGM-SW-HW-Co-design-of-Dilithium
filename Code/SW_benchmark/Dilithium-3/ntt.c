@@ -1,8 +1,25 @@
+/*************************************************
+ * File: ntt.c
+ * 
+ * Description: Number Theoretic Transform (NTT) implementation for
+ *              polynomial multiplication in CRYSTALS-Dilithium-3.
+ *              Provides forward NTT and inverse NTT operations.
+ * 
+ * Purpose: Fast polynomial multiplication using NTT in the ring
+ *          Zq[X]/(X^256+1) with q = 8380417
+ * 
+ * Note: Uses precomputed twiddle factors (zetas) for transformations.
+ *       Identical to Dilithium-2 NTT implementation.
+ *************************************************/
+
 #include <stdint.h>
 #include "params.h"
 #include "ntt.h"
 #include "reduce.h"
 
+/* Precomputed twiddle factors for NTT and inverse NTT.
+ * zetas[i] contains the i-th power of the root of unity modulo Q.
+ * These values enable efficient computation of NTT transformations. */
 static const int32_t zetas[N] = {
          0,    25847, -2608894,  -518909,   237124,  -777960,  -876248,   466468,
    1826347,  2353451,  -359251, -2091905,  3119733, -2884855,  3111497,  2680103,

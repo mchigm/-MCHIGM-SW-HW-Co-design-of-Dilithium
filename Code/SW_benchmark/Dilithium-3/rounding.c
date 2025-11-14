@@ -1,3 +1,19 @@
+/*************************************************
+ * File: rounding.c
+ * 
+ * Description: Rounding and decomposition functions for Dilithium-3 signature.
+ *              Implements power-of-2 rounding, high/low bit decomposition,
+ *              and hint generation/usage for signature verification.
+ * 
+ * Purpose: Support for signature compression and verification through
+ *          specialized rounding operations that split coefficients
+ *          into high and low parts.
+ * 
+ * Note: These operations are critical for the signature scheme's
+ *       correctness and security properties.
+ *       Dilithium-3 uses GAMMA2=(Q-1)/32 instead of (Q-1)/88.
+ *************************************************/
+
 #include <stdint.h>
 #include "params.h"
 #include "rounding.h"

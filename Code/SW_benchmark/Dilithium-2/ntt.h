@@ -1,3 +1,16 @@
+/*************************************************
+ * File: ntt.h
+ * 
+ * Description: Header file for Number Theoretic Transform operations.
+ * 
+ * Purpose: Declares NTT and inverse NTT functions for fast polynomial
+ *          multiplication in Dilithium signature scheme.
+ * 
+ * API:
+ *   - ntt(): Forward NTT transformation
+ *   - invntt_tomont(): Inverse NTT with Montgomery conversion
+ *************************************************/
+
 #ifndef NTT_H
 #define NTT_H
 

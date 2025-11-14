@@ -1,3 +1,21 @@
+/*************************************************
+ * File: poly.c
+ * 
+ * Description: Polynomial operations for CRYSTALS-Dilithium-3.
+ *              Implements arithmetic, NTT transforms, sampling,
+ *              and packing/unpacking for polynomials in Zq[X]/(X^256+1).
+ * 
+ * Purpose: Core polynomial operations including:
+ *          - Arithmetic: add, subtract, multiply (via NTT)
+ *          - Sampling: uniform, eta-bounded, gamma1-bounded
+ *          - Rounding and decomposition operations
+ *          - Serialization and deserialization
+ * 
+ * Note: Many functions include DBENCH macros for performance
+ *       measurement when benchmarking is enabled.
+ *       Dilithium-3 uses ETA=4 and GAMMA1=(1<<19).
+ *************************************************/
+
 #include <stdint.h>
 #include "params.h"
 #include "poly.h"

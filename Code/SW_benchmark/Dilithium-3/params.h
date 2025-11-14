@@ -1,15 +1,39 @@
+/*************************************************
+ * File: params.h
+ * 
+ * Description: Parameter definitions for CRYSTALS-Dilithium-3
+ *              post-quantum signature scheme.
+ * 
+ * Purpose: Defines security parameters, dimensions, and constants
+ *          for Dilithium mode 3 (NIST Level 3 security).
+ * 
+ * Note: Security level is selected via DILITHIUM_MODE in config.h
+ *       Mode 3: NIST Level 3 security (192-bit classical, 128-bit quantum)
+ *       Parameters: K=6, L=5, ETA=4, GAMMA1=(1<<19)
+ *************************************************/
+
 #ifndef PARAMS_H
 #define PARAMS_H
 
 #include "config.h"
 
-#define SEEDBYTES 32
-#define CRHBYTES 48
-#define N 256
-#define Q 8380417
-#define D 13
-#define ROOT_OF_UNITY 1753
+/* Common parameters for all Dilithium modes */
+#define SEEDBYTES 32            // Size of random seed in bytes
+#define CRHBYTES 48             // Size of collision-resistant hash output
+#define N 256                   // Polynomial degree
+#define Q 8380417               // Prime modulus
+#define D 13                    // Dropped bits from t
+#define ROOT_OF_UNITY 1753      // N-th root of unity modulo Q
 
+/* Mode-specific parameters
+ * K: rows in matrix A (public key dimension)
+ * L: columns in matrix A (secret key dimension)  
+ * ETA: range of secret key coefficients [-ETA, ETA]
+ * TAU: number of non-zero coefficients in challenge polynomial
+ * BETA: rejection bound for signature verification
+ * GAMMA1: y coefficient range parameter
+ * GAMMA2: low-order rounding range
+ * OMEGA: maximum number of hints */
 #if DILITHIUM_MODE == 2
 #define K 4
 #define L 4

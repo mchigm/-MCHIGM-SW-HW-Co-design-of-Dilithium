@@ -1,3 +1,38 @@
+/*************************************************
+ * Module: ntt_intt_pipe
+ * 
+ * Description: Pipelined NTT/INTT (Number Theoretic Transform) controller.
+ *              Manages the complete NTT or inverse NTT transformation
+ *              of a 256-coefficient polynomial through 8 rounds.
+ * 
+ * Purpose: Orchestrates memory access, twiddle factor lookup, and
+ *          butterfly unit control for efficient NTT computation.
+ * 
+ * Operation:
+ *   - NTT mode (sel=0): Decimation-in-time (DIT) forward transform
+ *   - INTT mode (sel=1): Decimation-in-frequency (DIF) inverse transform
+ * 
+ * Memory Interface:
+ *   - coef RAM: Stores input/output polynomial coefficients (dual-port)
+ *   - temp RAM: Temporary storage for intermediate results (dual-port)
+ *   - zeta ROM: Precomputed twiddle factors
+ * 
+ * Pipeline: 8 rounds of butterflies with 14-stage pipeline buffering
+ * 
+ * Ports:
+ *   clk           - System clock
+ *   start         - Start signal (1 to begin transformation)
+ *   sel           - Mode: 0 for NTT (DIT), 1 for INTT (DIF)
+ *   done          - Completion signal
+ *   read_start    - Memory read enable
+ *   compu_working - Computation active indicator
+ *   zeta_*        - ROM interface for twiddle factors
+ *   coef_*        - Dual-port RAM interface for coefficients
+ *   temp_*        - Dual-port RAM interface for temporary storage
+ *   a, b, omiga   - Outputs to butterfly unit
+ *   a1, b1        - Inputs from butterfly unit
+ *************************************************/
+
 `timescale 1ns / 1ps
 
 module ntt_intt_pipe(
@@ -44,21 +79,25 @@ module ntt_intt_pipe(
     input  wire [22:0] b1
     );
     
-    wire[7:0] len;
-    reg[7:0] len_buf;
-    reg [2:0] counter1;
-    reg [7:0] counter2;
-    reg [6:0] counter3;
+    // ========== Control Counters and Length Calculation ==========
+    wire[7:0] len;              // Current butterfly group length
+    reg[7:0] len_buf;           // Buffered length value
+    reg [2:0] counter1;         // Round counter (0-7 for 8 rounds)
+    reg [7:0] counter2;         // Butterfly pair counter within round
+    reg [6:0] counter3;         // Position counter within butterfly group
     
+    // Length computation: grows for DIF (INTT), shrinks for DIT (NTT)
     assign len = (sel_keep)?(1<<counter1):(128>>counter1);
     
     wire[7:0] temp_loop2;
     assign temp_loop2 = counter3 + len_buf;
     
-    wire count1_last;
-    wire count2_last;
-    wire count3_last;
+    // Counter limit flags
+    wire count1_last;   // Last round indicator
+    wire count2_last;   // Last butterfly pair in round
+    wire count3_last;   // Last position in group
     
+    // Pipeline delay registers for round_start signal (14 stages)
     reg round_start_buf1;
     reg round_start_buf2;
     reg round_start_buf3;
@@ -74,11 +113,13 @@ module ntt_intt_pipe(
     reg round_start_buf13;
     reg round_start_buf14;
     
-    wire ntt_first;
-    wire ntt_last;
+    // Round boundary detection
+    wire ntt_first;     // First round
+    wire ntt_last;      // Last round
     assign ntt_first = (counter1 == 0);
     assign ntt_last = (counter1==3'b111);
     
+    // Pipeline delay registers for count2_last signal (16 stages)
     reg  count2_last_1;
     reg  count2_last_2;
     reg  count2_last_3;

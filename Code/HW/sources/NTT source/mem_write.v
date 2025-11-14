@@ -1,3 +1,30 @@
+/*************************************************
+ * Module: mem_write
+ * 
+ * Description: Memory write controller for NTT output data.
+ *              Reads polynomial coefficients from dual-port RAM
+ *              and writes them to AXI Stream interface.
+ * 
+ * Purpose: Interfaces between local RAM and DMA (via AXI Stream),
+ *          outputting 256 coefficients after NTT processing.
+ * 
+ * Operation: Reads two 23-bit coefficients from RAM ports,
+ *            packs them into 64-bit word, and sends via AXI Stream.
+ * 
+ * Data Format: Two 23-bit coefficients packed in 64-bit word
+ *              [63:32] = second coefficient (port B)
+ *              [22:0]  = first coefficient (port A)
+ * 
+ * Ports:
+ *   clk          - System clock
+ *   module_start - Start writing operation
+ *   Ws_tready    - AXI Stream output ready
+ *   Ws_tdata     - AXI Stream output data (64-bit, 2 coefficients)
+ *   Ws_tvalid    - AXI Stream output valid
+ *   coef_*       - Dual-port RAM interface for coefficient reading
+ *   module_done  - Operation complete signal
+ *************************************************/
+
 `timescale 1ns / 1ps
 
 module mem_write(
@@ -22,17 +49,21 @@ module mem_write(
 
     );
     
-    reg[7:0] counter;
-    wire count_done;
-    reg counter_working;
+    // Counter and control
+    reg[7:0] counter;            // Address counter for RAM (counts by 2)
+    wire count_done;             // Counter reached 256
+    reg counter_working;         // Counter operation active
     
-    reg[22:0] data1;
-    reg[22:0] data2;
+    // Data buffering
+    reg[22:0] data1;             // Coefficient from port A
+    reg[22:0] data2;             // Coefficient from port B
     reg working_1;
     reg working_2;
     reg done_1;
     reg done_2;
     wire mem_working;
+    
+    // Main control logic
     always@(posedge clk)
     begin
         counter <= (module_start)? 0 : (Ws_tready & mem_working)? (counter + 2'd2) : counter;
